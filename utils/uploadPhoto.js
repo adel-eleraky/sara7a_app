@@ -9,7 +9,7 @@ let imageFilter = (req, file , cb) => {
     if(file.mimetype.startsWith("image")) {
         cb(null , true)
     } else {
-        cb("Not image" , false)
+        cb(new Error("Please upload image") , false)
     }
 }
 

@@ -11,6 +11,14 @@ app.use(express.json())
 app.use("/api/v1/users" , userRouter)
 app.use("/api/v1/messages" , messageRouter)
 
+app.use((err , req, res, next) => {
+
+    return res.status(409).json({
+        status: "fail",
+        message: err.message
+    })
+})
+
 const DB = process.env.MONGO_URL.replace(
     "<db_password>",
     process.env.MONGO_PASS
