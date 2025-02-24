@@ -16,8 +16,8 @@ const sendEmail = async options => {
         from: "sara7a app <support@sara7a.com>",
         to: options.email,
         subject: options.subject,
-        // text: options.message,
-        html: options.html
+        text: options.message,
+        // html: options.html
     }
 
     await transporter.sendMail(mailOptions)
