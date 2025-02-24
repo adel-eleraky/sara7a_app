@@ -37,13 +37,14 @@ let signUp = async (req, res) => {
         let user = await User.create({ name, email, password: hashedPass, phone })
 
         let token = jwt.sign({ id: user._id, emailVerified: false }, process.env.JWT_SECRET)
+        saveTokenInCookie(res , token)
 
         let verifyUrl = `${req.protocol}://${req.get("host")}/api/v1/users/verifyEmail/${token}`
 
         await sendEmail({
             email,
             subject: "Verify your email",
-            message: `click this link to verify your email ${verifyUrl}`
+            message: `verification code: ${verifyUrl}`
         })
 
         let objUser = user.toObject()
@@ -158,9 +159,42 @@ let verifyEmail = async (req, res) => {
         res.status(500).json({ message: err.message })
     }
 }
+
+let logout = async (req, res) => {
+    
+    try {
+
+        res.cookie("jwt" , "logout", {expires: new Date(Date.now() + 10 * 1000), httpOnly: true})
+
+        res.status(200).json({
+            status: "success",
+            message: "Logged-out successfully"
+        })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+
+let getLoggedInUser = async (req, res) => {
+    
+    try {
+
+        let user = req.user
+
+        res.status(200).json({
+            status: "success",
+            data: user
+        })
+    } catch (err) {
+        res.status(500).json({ message: err.message })
+    }
+}
+
 export {
     login,
     signUp,
     upload,
-    verifyEmail
+    verifyEmail,
+    logout,
+    getLoggedInUser
 }
