@@ -11,5 +11,7 @@ router.post("/login" , loginValidation(loginSchema) , userController.login)
 router.post("/signup" , signUpValidation(signUpSchema) , userController.signUp)
 router.put("/upload/:id", protectedRoute , uploadPhoto, resizePhoto , userController.upload)
 router.put("/verifyEmail/:token" , userController.verifyEmail)
+router.get("/logout" ,protectedRoute , userController.logout)
+router.get("/me" , protectedRoute , userController.getLoggedInUser)
 
 export default router
