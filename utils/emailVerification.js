@@ -10,7 +10,8 @@ export const emailVerify = async (req , res, user) => {
     await sendEmail({
         email: user.email,
         subject: "Verify your email",
-        html: emailTemplate(verifyUrl)
+        message: `click this link to verify your email ${verifyUrl}`
+        // html: emailTemplate(verifyUrl)
     })
 
     return res.status(401).json({
