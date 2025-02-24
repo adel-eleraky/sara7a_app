@@ -59,7 +59,7 @@ export const getMessages = async (req, res) => {
 export const deleteMessage = async (req, res) => {
     try {
 
-        const { id } = req.body
+        const { id } = req.params
 
         const message = await Message.findByIdAndDelete(id)
 
