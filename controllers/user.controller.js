@@ -5,6 +5,7 @@ import CryptoJS from "crypto-js"
 import jwt from "jsonwebtoken"
 import { saveTokenInCookie } from "../utils/response.js"
 import { emailVerify } from '../utils/emailVerification.js';
+import ShortUniqueId from 'short-unique-id';
 
 let signUp = async (req, res) => {
 
@@ -34,17 +35,20 @@ let signUp = async (req, res) => {
             phone = CryptoJS.HmacSHA1(phone, process.env.ENCRYPTION_KEY)
         }
 
-        let user = await User.create({ name, email, password: hashedPass, phone })
+        let uid = new ShortUniqueId({ length: 6 });
+        let verificationCode = uid.rnd()
+
+        let user = await User.create({ name, email, password: hashedPass, phone, verificationCode })
 
         let token = jwt.sign({ id: user._id, emailVerified: false }, process.env.JWT_SECRET)
         saveTokenInCookie(res , token)
 
-        let verifyUrl = `${req.protocol}://${req.get("host")}/api/v1/users/verifyEmail/${token}`
-
+        // let verifyUrl = `${req.protocol}://${req.get("host")}/api/v1/users/verifyEmail/${token}`
+        
         await sendEmail({
             email,
             subject: "Verify your email",
-            message: `verification code: ${verifyUrl}`
+            message: `verification code: ${verificationCode}`
         })
 
         let objUser = user.toObject()
@@ -130,18 +134,23 @@ let verifyEmail = async (req, res) => {
 
     try {
 
-        let { token } = req.params
+        let { code } = req.body
 
+        let token = req.cookies.jwt
         let decoded = jwt.verify(token, process.env.JWT_SECRET)
 
-        const user = await User.findByIdAndUpdate(decoded.id, { emailVerified: true }, { new: true })
+        const user = await User.findOne({ _id: decoded.id, verificationCode: code })
 
         if (!user) {
             return res.status(401).json({
                 status: "fail",
-                message: "User not found"
+                message: "Invalid verification code"
             })
         }
+
+        user.emailVerified = true
+        user.verificationCode = ""
+        await user.save()
 
         token = jwt.sign({ id: user._id, emailVerified: true }, process.env.JWT_SECRET)
         saveTokenInCookie(res , token)
